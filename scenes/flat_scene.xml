@@ -1,0 +1,8 @@
+<mujoco model="flat_scene">
+     <include file="../models/black/black_description_mjcf.xml"/>
+     <option timestep="0.002" gravity="0 0 -9.81"/>
+     <worldbody>
+          <light pos="0 0 3"/>
+          <geom name="floor" type="plane" size="5 5 0.1" rgba="0.8 0.8 0.8 1"/>
+     </worldbody>
+</mujoco>
