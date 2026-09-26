@@ -30,7 +30,8 @@
 - [x] 将仿真代码拆分为 MuJoCoSimulator、ZeroTorqueController 和 main
 - [x] 阅读 unitree_mujoco 的 README、Python 主程序和桥接层
 - [x] 对比单线程与双线程仿真结构
-- [ ] 选做：使用 C++ 重写核心仿真程序
+- [x] 选做：使用 C++ 重写核心仿真程序（无界面版本）
+- [ ] 可选增强：为 C++ 版本接入 Viewer
 
 ## 环境与依赖
 
@@ -77,6 +78,9 @@ project/
 │   └── main_threaded.py
 ├── scripts/
 │   └── simulate_flat.py
+├── cpp/
+│   ├── simulate_prone.cpp
+│   └── README.md
 ├── .gitignore
 └── README.md
 ```
