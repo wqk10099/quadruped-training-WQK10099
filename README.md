@@ -27,6 +27,8 @@
 - [x] 添加 12 个 motor 力矩执行器
 - [x] 编写平坦地面场景
 - [x] 在零力矩输入下观察机器狗稳定趴卧
+- [x] 实现 PD 控制站立（扩展实验）
+- [ ] 实现原地踏步（扩展实验）
 - [x] 将仿真代码拆分为 MuJoCoSimulator、ZeroTorqueController 和 main
 - [x] 阅读 unitree_mujoco 的 README、Python 主程序和桥接层
 - [x] 对比单线程与双线程仿真结构
@@ -74,8 +76,10 @@ project/
 │   ├── __init__.py
 │   ├── simulator.py
 │   ├── controller.py
+│   ├── stand_controller.py
 │   ├── main.py
-│   └── main_threaded.py
+│   ├── main_threaded.py
+│   └── stand_main.py
 ├── scripts/
 │   └── simulate_flat.py
 ├── cpp/
@@ -264,6 +268,104 @@ python3 simulate_flat.py
 
 该版本保留作学习参考，主要入口已经迁移到 src/ 目录。
 
+## 站立控制（扩展实验）
+
+在完成零力矩稳定趴卧后，项目增加了基于 PD 控制的站立实验。站立不是原任务的验收条件，主要用于理解 motor 力矩控制、关节目标角跟踪和 mj_data 中的状态反馈。
+
+### 站立目标姿态
+
+站立姿态使用略屈膝的四点支撑姿势。12 个执行器对应的目标角度为：
+
+```text
+[FL_hip, FL_thigh, FL_calf,
+ FR_hip, FR_thigh, FR_calf,
+ RR_hip, RR_thigh, RR_calf,
+ RL_hip, RL_thigh, RL_calf]
+
+[0.0,  0.6, -1.0,
+ 0.0, -0.6,  1.0,
+ 0.0, -0.6,  1.0,
+ 0.0,  0.6, -1.0]
+```
+
+前置和后置腿的符号不同，是为了适配模型左右腿镜像的关节轴方向。
+
+### stand keyframe
+
+flat_scene.xml 中增加了 stand keyframe：
+
+```xml
+<keyframe>
+    <key name="stand"
+        qpos="0 0 0.5102516 1 0 0 0
+              0 0.6 -1.0
+              0 -0.6 1.0
+              0 -0.6 1.0
+              0 0.6 -1.0"/>
+</keyframe>
+```
+
+其中 qpos 的顺序为：
+
+```text
+基座位置 3 个数 + 基座姿态四元数 4 个数
++ 12 个关节目标角
+```
+
+MuJoCoSimulator.reset_to_keyframe() 通过 mj_resetDataKeyframe() 恢复到该姿态。
+
+### PD 力矩控制
+
+motor 执行器写入的是力矩。站立控制器使用目标关节角和当前状态计算：
+
+```text
+tau = kp * (q_des - q) - kd * dq
+```
+
+其中：
+
+```text
+q  = data.qpos[7:]
+dq = data.qvel[6:]
+```
+
+当前站立实验使用：
+
+```text
+kp = 40.0
+kd = 2.0
+tau 限制 = [-20, 20] N·m
+```
+
+相关文件：
+
+- src/stand_controller.py：PDController。
+- src/stand_main.py：站立控制主程序。
+- scenes/flat_scene.xml：stand keyframe。
+
+### 运行站立实验
+
+```bash
+cd ~/mujoco_training/03_robot_dog/project
+python3 -m src.stand_main
+```
+
+预期状态：
+
+- 四个脚接触地面；
+- 机身高度 qpos[2] 约为 0.489 m；
+- 姿态四元数接近 [1, 0, 0, 0]；
+- qvel 在稳定后接近零；
+- ctrl 由 PD 控制器计算，不再全部为零；
+- 机器人能够保持直立姿态。
+
+### 当前站立控制的限制
+
+- 当前控制目标是固定站立姿态，不包含机身位置和姿态反馈。
+- 还没有步态生成、足端轨迹规划和身体平衡控制器。
+- 站立姿态对 kp、kd 和初始姿态敏感，参数变化后需要重新验证。
+- 下一步应在站立稳定的基础上实现原地踏步，再加入简单的周期关节目标。
+
 ## 当前实现结果
 
 - MJCF 模型可以成功加载；
@@ -274,6 +376,8 @@ python3 simulate_flat.py
 - 最终机身腹部朝下，四条腿展开，稳定趴卧在平地上；
 - 四元数接近 [1, 0, 0, 0]，机身姿态稳定；
 - 最终 qvel 接近 0，未观察到持续抖动或机械振荡。
+
+PD 站立扩展实验中，机器人能够在 PD 力矩控制下保持四点接触和近似直立姿态，机身高度约为 0.489 m，姿态四元数接近单位四元数。站立控制使用 src/stand_controller.py 中的 PDController 和 src/stand_main.py 主程序。
 
 可用于辅助检查的代码：
 
@@ -388,6 +492,7 @@ mj_data.sensordata
 1. 将稳定趴卧的 qpos 保存为 MuJoCo keyframe；
 2. 设计只读状态接口和线程安全的控制命令接口；
 3. 进一步比较单线程、物理线程加主线程 Viewer 等结构；
-4. 在稳定的零力矩仿真基础上学习 PD 控制器；
-5. 再尝试站立、姿态保持和简单步态；
-6. 选做使用 C++ 重写核心仿真流程，并比较结构与性能。
+4. 在 PD 站立控制基础上实现原地踏步；
+5. 调整踏步振幅、频率和 PD 参数，保持机身稳定；
+6. 在稳定踏步基础上尝试简单前进步态；
+7. 可选：为 C++ 版本接入 Viewer。

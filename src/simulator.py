@@ -26,3 +26,9 @@ class MuJoCoSimulator:
 
     def step(self):
         mujoco.mj_step(self.model,self.data)
+
+    def reset_to_keyframe(self, name):
+        key_id = mujoco.mj_name2id(self.model,mujoco.mjtObj.mjOBJ_KEY,name,)
+        if key_id < 0:
+           raise ValueError(f"keyframe not found: {name}")
+        mujoco.mj_resetDataKeyframe(self.model, self.data, key_id)
