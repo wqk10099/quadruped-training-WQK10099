@@ -5,31 +5,40 @@ from pathlib import Path
 import mujoco.viewer
 import numpy as np
 from .simulator import MuJoCoSimulator
-from .controller import PDController
-
+from .controller import RobotController
+from .controller import RobotMode
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 SCENE_PATH = PROJECT_ROOT / "scenes" / "flat_scene.xml"
 VIEWER_DT = 0.02
+
+Q_LIE = np.array([0,  1.55, -2.45,
+                      0, -1.55,  2.45,
+                      0, -1.55,  2.45,
+                      0,  1.55, -2.45])
+
+Q_STAND = np.array([0,  0.6, -1.0,
+                        0, -0.6,  1.0,
+                        0, -0.6,  1.0,
+                        0,  0.6, -1.0])
 sim = MuJoCoSimulator(SCENE_PATH)
-q_des = np.array([
-    0.0,  0.6, -1.0,
-    0.0, -0.6,  1.0,
-    0.0, -0.6,  1.0,
-    0.0,  0.6, -1.0,
-])
-controller = PDController(
-    kp=40.0,
-    kd=2.0,
-    q_des=q_des,
-)
+controller = RobotController(Q_STAND,Q_LIE)
 lock = threading.Lock()
-sim.reset_to_keyframe("stand")
+pending={"mode":None}   #跨线程传一个请求
+KEY_MAP = {
+    ord("S"): RobotMode.STAND,
+    ord("L"): RobotMode.LIE,
+    ord("D"): RobotMode.DAMPING,
+}
+
 
 def physics_loop():
     while viewer.is_running():
         step_start = time.time()
 
         with lock:
+            if pending["mode"] is not None:
+                controller.set_mode(pending["mode"])
+                pending["mode"]=None
             controller.update(sim)
             sim.step()
 
@@ -42,10 +51,14 @@ def viewer_loop():
             viewer.sync()
 
         time.sleep(VIEWER_DT)
+def on_key(key):
+        mode=KEY_MAP.get(key)
+        if mode is not None:
+            pending["mode"]=mode
 
 if __name__=="__main__":
     
-    with mujoco.viewer.launch_passive(sim.model, sim.data) as viewer:
+    with mujoco.viewer.launch_passive(sim.model, sim.data,key_callback=on_key) as viewer:
         physics_thread = threading.Thread(target=physics_loop)
         viewer_thread = threading.Thread(target=viewer_loop)
 
