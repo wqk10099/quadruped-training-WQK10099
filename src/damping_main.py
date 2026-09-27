@@ -5,25 +5,14 @@ from pathlib import Path
 import mujoco.viewer
 import numpy as np
 from .simulator import MuJoCoSimulator
-from .controller import PDController
+from .controller import DampingController
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 SCENE_PATH = PROJECT_ROOT / "scenes" / "flat_scene.xml"
 VIEWER_DT = 0.02
 sim = MuJoCoSimulator(SCENE_PATH)
-q_des = np.array([
-    0.0,  0.6, -1.0,
-    0.0, -0.6,  1.0,
-    0.0, -0.6,  1.0,
-    0.0,  0.6, -1.0,
-])
-controller = PDController(
-    kp=40.0,
-    kd=2.0,
-    q_des=q_des,
-)
+controller = DampingController()
 lock = threading.Lock()
-sim.reset_to_keyframe("stand")
 
 def physics_loop():
     while viewer.is_running():
