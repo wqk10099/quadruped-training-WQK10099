@@ -10,12 +10,14 @@ from .controller import RobotMode
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 SCENE_PATH = PROJECT_ROOT / "scenes" / "flat_scene.xml"
 VIEWER_DT = 0.02
-
+# 12 个关节目标角，顺序 FL, FR, RR, RL（每条腿 hip, thigh, calf）
 Q_LIE = np.array([0,  1.55, -2.45,
                       0, -1.55,  2.45,
                       0, -1.55,  2.45,
                       0,  1.55, -2.45])
-
+# 一条腿分为    hip（髋）：负责让整条腿左右内收或外摆
+#             thingh(大腿)：负责让腿前后摆动，是前进的主要动力
+#             calf(小腿)：负责膝盖的弯曲和伸展，抬腿依靠它
 Q_STAND = np.array([0,  0.6, -1.0,
                         0, -0.6,  1.0,
                         0, -0.6,  1.0,
@@ -28,6 +30,8 @@ KEY_MAP = {
     ord("S"): RobotMode.STAND,
     ord("L"): RobotMode.LIE,
     ord("D"): RobotMode.DAMPING,
+    ord("W"):RobotMode.WALK,
+    ord("M"):RobotMode.MARCH
 }
 
 
