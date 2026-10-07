@@ -1,4 +1,35 @@
+# Python
 __pycache__/
 *.py[cod]
-*.log
+*.pyo
 
+# 日志和运行输出
+*.log
+MUJOCO_LOG.TXT
+core
+core.*
+
+# 通用构建目录
+build/
+cmake-build-*/
+CMakeFiles/
+CMakeCache.txt
+compile_commands.json
+
+# C/C++ 编译产物
+*.o
+*.obj
+*.out
+*.exe
+*.so
+*.dylib
+*.dll
+
+# 编辑器临时文件
+*~
+*.swp
+*.swo
+
+# 操作系统文件
+.DS_Store
+Thumbs.db

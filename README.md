@@ -1,8 +1,12 @@
-# MuJoCo 四足机器人基础仿真
+# MuJoCo 四足机器人基础仿真（Python + C++）
+
+## GitHub 仓库
+
+[https://github.com/wqk10099/quadruped-training-WQK10099](https://github.com/wqk10099/quadruped-training-WQK10099)
 
 ## 项目目标
 
-使用 Python 将四足机器人的 URDF 模型转换并整理为 MuJoCo 的 MJCF 模型，在 MuJoCo 中加载平坦地形并运行仿真。
+将四足机器人的 URDF 模型转换并整理为 MuJoCo 的 MJCF 模型，在平坦地形中加载机器狗，并分别使用 Python 与 C++ 实现仿真、控制器、步态和交互式 Viewer。
 
 项目目前分为两个层次。
 
@@ -18,7 +22,7 @@
 - 阅读 unitree_mujoco，分析模型加载、状态读取、data.ctrl 写入、mj_step() 和线程设计；
 - 将仿真代码拆分为模型、控制器和主程序；
 - 对比单线程与双线程仿真结构；
-- 选做：使用 C++ 重新完成核心仿真流程。
+- 使用 C++ 重新完成核心仿真流程，并实现单线程、双线程 Viewer。
 
 **控制扩展部分（已完成）**：在零力矩趴卧的基础上，逐步给 12 个关节加上主动力矩控制。
 
@@ -44,8 +48,9 @@
 - [x] 将仿真代码拆分为 MuJoCoSimulator、控制器和主程序
 - [x] 对比单线程与双线程仿真结构
 - [x] 阅读 unitree_mujoco 的 README、Python 主程序和桥接层
-- [x] 选做：使用 C++ 重写核心仿真程序（无界面版本）
-- [ ] 可选增强：为 C++ 版本接入 Viewer
+- [x] 使用 C++ 重写 `simulator`、`controller` 和 `multimode_main`
+- [x] 为 C++ 版本接入 SDL2 + OpenGL Viewer
+- [x] 提供单线程与双线程 C++ 主程序
 
 控制扩展部分：
 
@@ -60,31 +65,61 @@
 
 ## 环境与依赖
 
-建议使用 Ubuntu 或兼容的 Linux 环境。
+建议使用 Ubuntu 22.04 或兼容的 Linux 环境。本项目在以下环境中验证通过：
+
+- Ubuntu 22.04
+- Python 3.10
+- MuJoCo 3.14.0
+- OpenGL 4.6 Compatibility Profile（Mesa / AMD）
+- g++ 11
+
+### Python 版本
 
 - Python 3
 - MuJoCo Python 包
 - NumPy
-- Git，用于版本管理
+- Git
 
-安装 MuJoCo：
-
-~~~bash
-python3 -m pip install mujoco
-~~~
-
-验证安装：
+安装与验证：
 
 ~~~bash
+python3 -m pip install mujoco numpy
 python3 -c "import mujoco; print(mujoco.__version__)"
 ~~~
 
-本项目在 MuJoCo 3.14.0、Python 3.10 上验证通过。
+### C++ 版本
+
+- 支持 C++17 的编译器（`g++`）
+- MuJoCo Python 包中附带的 C/C++ 头文件和 `libmujoco`
+- SDL2 开发库
+- OpenGL 开发库
+- `pkg-config`
+- `pthread`
+
+Ubuntu 下可以安装：
+
+~~~bash
+sudo apt update
+sudo apt install -y g++ pkg-config libsdl2-dev libgl1-mesa-dev
+~~~
+
+确认 SDL2 可用：
+
+~~~bash
+pkg-config --modversion sdl2
+~~~
+
+注意事项：
+
+- C++ 版通过 Python 包中的 `mujoco` 目录查找 MuJoCo 头文件和动态库；
+- MuJoCo 的 `mjr` OpenGL 渲染器依赖固定管线和兼容上下文，因此必须使用 Compatibility Profile，不能使用 Core Profile；
+- 当前 C++ Viewer 使用 SDL2 管理窗口和键盘事件。
+
 
 ## 目录结构
 
 ~~~text
-project/
+第1次作业--四足的仿真运行/
 ├── models/
 │   └── black/
 │       ├── black_description.urdf
@@ -93,46 +128,63 @@ project/
 │       └── meshes/                  STL 网格文件
 ├── scenes/
 │   └── flat_scene.xml               平坦地形 + 机器狗 + stand keyframe
-├── src/
+├── src_py/                          Python 实现
 │   ├── __init__.py
-│   ├── simulator.py                 仿真器封装
-│   ├── controller.py                所有控制器 + 步态生成（见下表）
+│   ├── simulator.py                 MuJoCo 模型与数据封装
+│   ├── controller.py                控制器、模式状态机和步态
 │   ├── main.py                      零力矩趴卧 · 单线程
 │   ├── main_threaded.py             零力矩趴卧 · 双线程
 │   ├── stand_main.py                PD 定点站立
-│   ├── damping_main.py              第 1 步：阻尼模式
-│   ├── damping_stand_main.py        第 2 步：阻尼 → 按键起立
-│   └── multimode_main.py            第 3~5 步：五模式切换（S/L/D/M/W）
+│   ├── damping_main.py              阻尼模式
+│   ├── damping_stand_main.py        阻尼 → 按键起立
+│   └── multimode_main.py            五模式切换（S/L/D/M/W）
+├── src_cpp/                         C++ 重写版本
+│   ├── simulator.hpp / simulator.cpp
+│   ├── controller.hpp / controller.cpp
+│   ├── multimode_main.cpp           单线程多模式 Viewer
+│   ├── multimode_main_threaded.cpp  双线程多模式 Viewer
+│   ├── build.sh                     一键编译脚本
+│   ├── *_test.cpp                   分阶段学习与验证程序
+│   └── .gitignore                   忽略 C++ 编译产物
 ├── scripts/
-│   └── simulate_flat.py             最初的单文件版本，保留作参考
+│   └── simulate_flat.py             最初的单文件参考版本
 ├── cpp/
-│   ├── simulate_prone.cpp
+│   ├── simulate_prone.cpp           早期 C++ 无界面练习
 │   └── README.md
 ├── .gitignore
 └── README.md
 ~~~
 
-文件职责：
+### Python 文件职责
 
-- models/black/black_description.urdf：原始 URDF 模型。
-- models/black/black_description_mjcf_raw.xml：URDF 转换工具生成的原始 MJCF，保留作参考。
-- models/black/black_description_mjcf.xml：整理后实际使用的 MJCF 模型。
-- scenes/flat_scene.xml：平坦地面、灯光、机器人模型以及 stand keyframe。
-- src/simulator.py：封装 MjModel、MjData、重置和 mj_step()。
-- src/controller.py：所有控制策略集中在这里，见下表。
-- scripts/simulate_flat.py：最初的单文件版本，保留作学习参考。
+- `src_py/simulator.py`：封装 `MjModel`、`MjData`、重置和 `mj_step()`。
+- `src_py/controller.py`：集中实现所有控制策略、路点和步态生成。
+- `src_py/multimode_main.py`：双线程模式切换主程序。
+- `src_py/damping_main.py`：阻尼控制练习。
+- `src_py/damping_stand_main.py`：阻尼到站立的两步切换练习。
 
-src/controller.py 中的控制类：
+### C++ 文件职责
+
+| Python 文件 | C++ 对应实现 | 作用 |
+|---|---|---|
+| `simulator.py` | `src_cpp/simulator.hpp/.cpp` | 加载模型、创建数据、重置、推进仿真 |
+| `controller.py` | `src_cpp/controller.hpp/.cpp` | 阻尼、PD、路点和爬行步态 |
+| `multimode_main.py` | `src_cpp/multimode_main.cpp` | 单线程 Viewer 与键盘模式切换 |
+| 双线程主程序 | `src_cpp/multimode_main_threaded.cpp` | 物理线程与渲染线程分离 |
+| 分步测试程序 | `src_cpp/*_test.cpp` | 验证阻尼、PD、站立、趴下、踏步和行走 |
+
+### Python 控制类
 
 | 类 | 控制律 | 使用它的主程序 |
 |---|---|---|
-| ZeroTorqueController | ctrl = 0 | main.py / main_threaded.py |
-| PDController | ctrl = kp(q_des - q) - kd·dq | stand_main.py |
-| DampingController | ctrl = -kd·dq | damping_main.py |
-| Damping_StandController | 阻尼 ⇄ 按键起立（两步版） | damping_stand_main.py |
-| RobotController（配 RobotMode） | 阻尼 / 站立 / 趴下 / 原地踏步 / 行走 五模式 | multimode_main.py |
+| `ZeroTorqueController` | `ctrl = 0` | `main.py` / `main_threaded.py` |
+| `PDController` | `ctrl = kp(q_des - q) - kd·dq` | `stand_main.py` |
+| `DampingController` | `ctrl = -kd·dq` | `damping_main.py` |
+| `Damping_StandController` | 阻尼 ⇄ 按键起立 | `damping_stand_main.py` |
+| `RobotController` | 阻尼 / 站立 / 趴下 / 踏步 / 行走 | `multimode_main.py` |
 
-<small>前四个类是最早的分步练习版本，功能已被 RobotController 完全覆盖，保留作学习记录。</small>
+C++ 中保留同样的控制逻辑，状态由 `RobotMode` 枚举表示，目标角使用 `std::array<double, 12>` 保存。
+
 
 ## URDF 来源与转换过程
 
@@ -246,24 +298,75 @@ flat_scene.xml 通过 include 引入整理后的机器人模型，并添加平�
 
 ## 运行方式
 
-所有主程序都必须在**项目根目录**下用 -m 模块方式运行（因为使用了相对导入）：
+### Python 版本
+
+在项目根目录下使用 `-m` 模块方式运行，以保证相对导入正常工作：
 
 ~~~bash
-cd ~/mujoco_training/03_robot_dog/project
+cd ~/mujoco_training/03_robot_dog/第1次作业--四足的仿真运行
 ~~~
 
 | 命令 | 内容 | 按键 |
 |---|---|---|
-| python3 -m src.main | 零力矩趴卧（单线程） | 无 |
-| python3 -m src.main_threaded | 零力矩趴卧（双线程） | 无 |
-| python3 -m src.stand_main | PD 定点站立 | 无 |
-| python3 -m src.damping_main | 第 1 步：阻尼模式 | 无 |
-| python3 -m src.damping_stand_main | 第 2 步：阻尼 → 按键起立 | S 起立 / D 阻尼 |
-| python3 -m src.multimode_main | 第 3~5 步：五模式切换 | S 站立 / L 趴下 / D 阻尼 / M 原地踏步 / W 行走 |
+| `python3 -m src_py.main` | 零力矩趴卧（单线程） | 无 |
+| `python3 -m src_py.main_threaded` | 零力矩趴卧（双线程） | 无 |
+| `python3 -m src_py.stand_main` | PD 定点站立 | 无 |
+| `python3 -m src_py.damping_main` | 阻尼模式 | 无 |
+| `python3 -m src_py.damping_stand_main` | 阻尼 → 按键起立 | S / D |
+| `python3 -m src_py.multimode_main` | 五模式切换 | S/L/D/M/W |
 
-按键用的是 MuJoCo passive viewer 的键盘回调，键码是 GLFW 键码，字母键的键码正好等于对应大写字母的 ASCII 值（例如 S = 83 = ord("S")）。
+Python 版本使用 MuJoCo passive viewer 的键盘回调。主程序必须在项目根目录运行，不能直接执行 `python3 src_py/xxx_main.py`。
 
-如果直接写成 python3 src/xxx_main.py，会报 attempted relative import with no known parent package，这是启动方式的问题，不是代码本身的问题。
+### C++ 版本
+
+进入 C++ 源码目录并执行构建脚本：
+
+~~~bash
+cd ~/mujoco_training/03_robot_dog/第1次作业--四足的仿真运行/src_cpp
+chmod +x build.sh
+./build.sh
+~~~
+
+脚本会生成两个可执行文件：
+
+~~~text
+multimode_main           单线程版本
+multimode_main_threaded  双线程版本
+~~~
+
+运行单线程版本：
+
+~~~bash
+./multimode_main ../scenes/flat_scene.xml
+~~~
+
+运行双线程版本：
+
+~~~bash
+./multimode_main_threaded ../scenes/flat_scene.xml
+~~~
+
+C++ 按键映射：
+
+| 按键 | 模式 |
+|---|---|
+| S | 站立 |
+| L | 趴下 |
+| D | 阻尼 |
+| M | 原地踏步 |
+| W | 平地行走 |
+| Esc | 退出 |
+
+C++ 键盘处理使用 SDL `scancode`，因此 Caps Lock 和 Shift 不会影响快捷键。
+
+### 单线程与双线程 C++ 主程序
+
+- `multimode_main.cpp`：键盘事件、控制计算、`mj_step()` 和渲染位于同一线程，结构简单，适合学习。
+- `multimode_main_threaded.cpp`：主线程负责 SDL、OpenGL 和渲染；物理线程负责控制与仿真。
+- 双线程版本使用 `std::atomic<bool>` 控制退出，用 `std::mutex` 保护 MuJoCo 数据、控制器状态和模式请求。
+- 键盘线程只提交 `pending_mode`，真正的 `set_mode()` 由物理线程执行。
+- 退出时必须先停止并 `join()` 物理线程，再释放渲染资源和 SDL 资源。
+
 
 ## 力矩控制五步（重点）
 
@@ -302,9 +405,9 @@ ctrl = -kd · dq
 
 **文件**
 
-- 控制器：src/controller.py 中的 DampingController
-- 主程序：src/damping_main.py
-- 运行：python3 -m src.damping_main
+- 控制器：src_py/controller.py 中的 DampingController
+- 主程序：src_py/damping_main.py
+- 运行：python3 -m src_py.damping_main
 
 **实测（从站立姿态放开）**
 
@@ -382,8 +485,8 @@ with mujoco.viewer.launch_passive(sim.model, sim.data, key_callback=on_key) as v
 
 **文件**
 
-- 控制器：src/controller.py 中的 Damping_StandController
-- 主程序：src/damping_stand_main.py
+- 控制器：src_py/controller.py 中的 Damping_StandController
+- 主程序：src_py/damping_stand_main.py
 - 按键：S 起立 / D 回到阻尼
 
 **实测**
@@ -452,8 +555,8 @@ KEY_MAP = {
 
 **文件**
 
-- 控制器：src/controller.py 中的 RobotController（配 RobotMode）
-- 主程序：src/multimode_main.py
+- 控制器：src_py/controller.py 中的 RobotController（配 RobotMode）
+- 主程序：src_py/multimode_main.py
 - 按键：S 站立 / L 趴下 / D 阻尼
 
 **实测**
@@ -528,8 +631,8 @@ u = (phase - k / 4.0) % 1.0      # 第 k 条腿自己的周期进度，落在 [0
 
 **文件**
 
-- 步态生成：src/controller.py 中 RobotController 的 _gait_offset()
-- 主程序：src/multimode_main.py
+- 步态生成：src_py/controller.py 中 RobotController 的 _gait_offset()
+- 主程序：src_py/multimode_main.py
 - 按键：M 原地踏步
 
 **实测**
@@ -548,7 +651,7 @@ u = (phase - k / 4.0) % 1.0      # 第 k 条腿自己的周期进度，落在 [0
 
 **文件**
 
-- 主程序：src/multimode_main.py
+- 主程序：src_py/multimode_main.py
 - 按键：W 行走
 
 **实测**
@@ -817,31 +920,24 @@ mj_data.sensordata -> LowState -> DDS -> 控制程序
 
 ## 已知问题
 
-- main_threaded.py 和 multimode_main.py 都把 Viewer 放在独立线程中，属于实验实现；
-- 站立为固定姿态 PD，不含机身位置和姿态反馈，站立的抗扰能力有限，且对 kp、kd、初始姿态敏感；
-- 完全翻倒时无法自行站起（见「能力边界」）；
-- 步态为开环爬行步态：踏步时有约 1 ~ 2 cm/s 的缓慢后漂，行走时有轻微侧向漂移；
-- 步态阶段也被 joint_speed 限速，抬脚幅度被削弱（抬脚瞬间小腿需要约 10 rad/s，被限到 2 rad/s），行走距离约为不限速时的一半；
+Python 与 C++ 版本共享以下限制：
+
+- 站立使用固定姿态 PD，不含机身位置和姿态反馈，抗扰能力有限，且对 `kp`、`kd` 和初始姿态敏感；
+- 机器人完全翻倒后无法自行恢复站立；
+- 步态为开环爬行步态：原地踏步约有几厘米每秒的漂移，行走时存在轻微侧向漂移；
+- 几何系数 KX/KZ/KC 是局部线性近似，不是精确逆运动学；
 - URDF 转 MJCF 后仍需继续核对碰撞体、质量、惯量和关节阻尼；
-- 稳定趴卧姿态依赖初始高度和模型碰撞参数，后续可以固化为 keyframe。
-
-**controller.py 当前待修问题**
-
-以下是代码审查中实际运行确认的问题，修复后应把本表删掉。
-
-| 位置 | 现象 | 原因 | 修法 |
-|---|---|---|---|
-| find_target 开头 | 按 S / L / M / W 立刻 NameError 崩溃 | 写成 self.mode == STAND，应为 RobotMode.STAND | 四处都补上 RobotMode. 前缀 |
-| _gait_offset 第一行 | 一开始踏步就 AttributeError 崩溃 | np.zero(12) 拼写错误 | 改成 np.zeros(12) |
-| _gait_offset 的 xoff | 走路一顿一顿，摆动幅度只有一半 | 摆动 / 支撑相公式多写了一个 /2，相切换处有 0.06 m 跳变 | 摆动写 −S/2 + S·s，支撑写 +S/2 − S·s |
-| find_target 的 LIE 分支 | 清单为空时会 IndexError（目前被前面的提前 return 挡住） | return self.waypoints[0] 没有兜底 | 改成 ... if self.waypoints else self.q_lie |
+- 稳定趴卧姿态依赖初始高度和碰撞参数，后续可以固化为统一 keyframe；
+- C++ OpenGL Viewer 必须使用 Compatibility Profile。Core Profile 会导致 MuJoCo `mjr` 渲染器报 `OpenGL ARB_framebuffer_object required`；
+- C++ 构建脚本依赖 Python 包中的 MuJoCo 开发文件，因此切换 Python 环境后需要重新构建；
+- 单线程 Viewer 的结构更简单；双线程版本更接近实时仿真，但必须严格遵守锁和退出顺序。
 
 ## 后续计划
 
-1. 修复「已知问题」中列出的 controller.py 待修项，让踏步与行走稳定跑通；
-2. 让步态阶段跳过 joint_speed 限速（姿态切换仍然限速），恢复抬脚幅度；
-3. 加入机身姿态反馈（用 qpos[3:7] 的四元数计算倾斜，修正髋 / 大腿目标），减少踏步漂移、提高站立抗扰能力；
-4. 把几何系数从「局部线性近似」升级为平面二连杆解析逆运动学，实现精确落脚；
-5. 将稳定趴卧的 qpos 保存为 MuJoCo keyframe，作为统一起点；
-6. 设计只读状态接口和线程安全的控制命令接口；
-7. 可选：为 C++ 版本接入 Viewer。
+1. 加入机身姿态反馈，利用基座四元数减少倾斜、踏步漂移和外界扰动影响；
+2. 将局部几何系数升级为平面二连杆解析逆运动学，实现更加准确的落脚控制；
+3. 将稳定趴卧姿态保存为 keyframe，统一 Python 与 C++ 的初始状态；
+4. 继续统一 Python 与 C++ 的参数、状态机和测试结果；
+5. 增加自动化测试，对比相同初始条件下 Python 与 C++ 的 `qpos/qvel/ctrl`；
+6. 为 C++ 项目增加 CMake 配置，替代手写且较长的编译命令；
+7. 进一步研究控制快照、线程安全队列和明确的 `mjData` 所有权模型。
