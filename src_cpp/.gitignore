@@ -1,0 +1,25 @@
+# 正式 C++ 可执行文件
+multimode_main
+multimode_main_threaded
+
+# 分阶段测试可执行文件
+viewer_test
+test_simulator
+damping_loop_test
+pd_test
+pd_loop_test
+robot_controller_test
+stand_lie_test
+lie_test
+march_test
+walk_test
+multimode_test
+
+# 运行日志
+MUJOCO_LOG.TXT
+*.log
+
+# 临时编译产物
+*.o
+*.out
+*.obj
