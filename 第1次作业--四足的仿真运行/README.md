@@ -303,7 +303,7 @@ flat_scene.xml 通过 include 引入整理后的机器人模型，并添加平�
 在项目根目录下使用 `-m` 模块方式运行，以保证相对导入正常工作：
 
 ~~~bash
-cd ~/mujoco_training/03_robot_dog/第1次作业--四足的仿真运行
+cd 第1次作业--四足的仿真运行
 ~~~
 
 | 命令 | 内容 | 按键 |
@@ -322,7 +322,7 @@ Python 版本使用 MuJoCo passive viewer 的键盘回调。主程序必须在�
 进入 C++ 源码目录并执行构建脚本：
 
 ~~~bash
-cd ~/mujoco_training/03_robot_dog/第1次作业--四足的仿真运行/src_cpp
+cd 第1次作业--四足的仿真运行/src_cpp
 chmod +x build.sh
 ./build.sh
 ~~~
