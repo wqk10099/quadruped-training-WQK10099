@@ -1,0 +1,44 @@
+# ========== ROS2 / colcon 构建产物 ==========
+build/
+install/
+log/
+*.colcon
+
+# ========== Python ==========
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+.pytest_cache/
+
+# ========== 日志与运行输出 ==========
+*.log
+MUJOCO_LOG.TXT
+core
+core.*
+
+# ========== C/C++ 编译产物 ==========
+*.o
+*.obj
+*.out
+*.exe
+*.so
+*.dylib
+*.dll
+
+# ========== CMake ==========
+cmake-build-*/
+CMakeFiles/
+CMakeCache.txt
+compile_commands.json
+
+# ========== 编辑器临时文件 ==========
+*~
+*.swp
+*.swo
+.vscode/
+.idea/
+
+# ========== 操作系统文件 ==========
+.DS_Store
+Thumbs.db
