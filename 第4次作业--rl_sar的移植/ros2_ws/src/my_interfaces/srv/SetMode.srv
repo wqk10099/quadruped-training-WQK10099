@@ -1,0 +1,6 @@
+# 请求
+int32 mode      # 0=DAMPING 1=STAND 2=LIE 3=MARCH 4=WALK
+---
+# 响应
+bool success
+string message
