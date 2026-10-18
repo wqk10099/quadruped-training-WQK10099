@@ -1,0 +1,8 @@
+# 个人标定数据（每台电机不同，不提交）
+python/motor_zero_cfg.json
+python/motor_zero_cfg.json.tmp
+
+# Python 缓存
+__pycache__/
+*.pyc
+*.pyo
