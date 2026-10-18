@@ -6,4 +6,4 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 cd "$HERE/python"
 
 # sudo 会清理环境变量，用 `sudo env` 显式传入 LD_LIBRARY_PATH
-sudo env LD_LIBRARY_PATH="$HERE/lib:${LD_LIBRARY_PATH}" python3 motor_zero.py
+sudo env LD_LIBRARY_PATH="$HERE/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" python3 motor_zero.py
