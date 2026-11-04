@@ -1,0 +1,15 @@
+{
+  "base": {
+    "checkpoint": "assets/policies/student_model_299.pt",
+    "runner_cfg": "",
+    "kind": "rsl_rl_flat45"
+  },
+  "climb": {
+    "checkpoint": "assets/policies/climb_model_59.pt",
+    "runner_cfg": "black_gru_local_teacher_platform_recovery_v9_ppo_runner_cfg"
+  },
+  "jump": {
+    "checkpoint": "assets/policies/jump_model_299.pt",
+    "runner_cfg": "black_gru_trench_autonomous_vertical_jump_local_teacher_ppo_runner_cfg"
+  }
+}

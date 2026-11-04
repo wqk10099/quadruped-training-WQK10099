@@ -1,0 +1,187 @@
+{
+  "success": true,
+  "failure_reasons": [],
+  "scenario": "manual",
+  "mode": "headless",
+  "initial_state": "LOCOMOTION",
+  "final_state": "LOCOMOTION",
+  "steps": 200,
+  "sim_time_s": 4.0,
+  "wall_time_s": 10.25264596939087,
+  "interrupted": false,
+  "reached_limit": true,
+  "state_sequence": [
+    "LOCOMOTION"
+  ],
+  "autopilot": {
+    "stage": "stand",
+    "failure_reason": null,
+    "transitions": []
+  },
+  "wall": {
+    "stage": "idle",
+    "failure_reason": null,
+    "transitions": [],
+    "spawn": [
+      1.8,
+      -7.55,
+      0.51
+    ],
+    "center": [
+      1.8,
+      -7.0,
+      0.15
+    ],
+    "x_range_m": [
+      1.3,
+      2.3
+    ],
+    "y_range_m": [
+      -7.025,
+      -6.975
+    ],
+    "height_m": 0.3,
+    "clear_y_m": -6.5,
+    "support_contact": false,
+    "leg_contact": false,
+    "cleared": false
+  },
+  "wall_climb": {
+    "stage": "idle",
+    "failure_reason": null,
+    "transitions": [],
+    "done": false,
+    "diagnostics": null,
+    "spawn": [
+      1.85,
+      -7.52,
+      0.51
+    ],
+    "center": [
+      1.8,
+      -7.0,
+      0.15
+    ],
+    "x_range_m": [
+      1.3,
+      2.3
+    ],
+    "y_range_m": [
+      -7.025,
+      -6.975
+    ],
+    "height_m": 0.3,
+    "clear_y_m": -6.5,
+    "min_final_z_m": 0.44,
+    "support_contact": false,
+    "leg_contact": false,
+    "cleared": false,
+    "minimum_root_z_m": 0.41196349263191223
+  },
+  "bridge": {
+    "stage": "idle",
+    "failure_reason": null,
+    "transitions": [],
+    "done": false,
+    "south_reached": false,
+    "diagnostics": null,
+    "north_spawn": [
+      5.7,
+      -1.32,
+      0.72
+    ],
+    "south_exit_y_m": -3.55,
+    "min_final_y_m": -3.3,
+    "min_final_z_m": 0.42,
+    "x_range_m": [
+      5.35,
+      6.05
+    ],
+    "minimum_root_z_m": 0.41196349263191223
+  },
+  "spawn": {
+    "position": [
+      0.0,
+      0.0,
+      0.51
+    ],
+    "yaw_rad": 0.0
+  },
+  "start_metrics": {
+    "x": 0.0002059179387288168,
+    "y": -0.00015811555203981698,
+    "z": 0.5087195038795471,
+    "yaw": -0.00045530733172476935,
+    "support_top_z": 0.5293825268745422,
+    "support_top_geom": "robot/black_support_collision_04",
+    "inside_bar_x": false,
+    "bar_crossed": false,
+    "bar_contact": false,
+    "bar_clean_crossed": false,
+    "bar_clearance_m": null,
+    "bar_max_top_z": 0.0,
+    "wall_support_contact": false,
+    "wall_leg_contact": false,
+    "wall_cleared": false
+  },
+  "final_metrics": {
+    "x": 1.1166092157363892,
+    "y": -0.18230941891670227,
+    "z": 0.4704885482788086,
+    "yaw": 0.01595768328110634,
+    "support_top_z": 0.497832715511322,
+    "support_top_geom": "robot/black_support_collision_00",
+    "inside_bar_x": false,
+    "bar_crossed": false,
+    "bar_contact": false,
+    "bar_clean_crossed": false,
+    "bar_clearance_m": null,
+    "bar_max_top_z": 0.0,
+    "wall_support_contact": false,
+    "wall_leg_contact": false,
+    "wall_cleared": false
+  },
+  "bar": {
+    "lower_z_m": 0.31,
+    "crawl_exit_y_m": -8.35,
+    "crossed": false,
+    "contact": false,
+    "clean_crossed": false,
+    "peak_collision_envelope_z_m": null,
+    "measured_clearance_m": null,
+    "minimum_reported_clearance_m": null
+  },
+  "peak_support_top_z_m": 0.5475364923477173,
+  "max_action_abs": 5.664584636688232,
+  "policies": {
+    "observation_dim": 45,
+    "observation_history_frames": 1,
+    "action_dim": 12,
+    "clip_actions": null,
+    "checkpoints": {
+      "base": {
+        "checkpoint": "/home/wangqikai/mjlab/logs/rsl_rl/black_velocity_flat/2026-10-23_22-36-49_flat_mlp_to_gru_distill_300_v1/student_model_299.pt",
+        "runner_cfg": "",
+        "kind": "rsl_rl_flat45"
+      },
+      "climb": {
+        "checkpoint": "/home/wangqikai/mjlab/logs/rsl_rl/black_velocity_rough/2026-10-31_09-36-30_local122_stabilize30_postmount_from_v12m30_512env_60it_v19_20261031_093626/model_59.pt",
+        "runner_cfg": "black_gru_local_teacher_platform_recovery_v9_ppo_runner_cfg",
+        "kind": "rsl_rl"
+      },
+      "jump": {
+        "checkpoint": "/home/wangqikai/mjlab/logs/rsl_rl/black_velocity_rough/2026-10-30_20-18-36_2026-10-30_j5h_directunload_256env_300it_from_sync300_lr1e4/model_299.pt",
+        "runner_cfg": "black_gru_trench_autonomous_vertical_jump_local_teacher_ppo_runner_cfg",
+        "kind": "rsl_rl"
+      }
+    }
+  },
+  "assets": {
+    "terrain_xml": "/home/wangqikai/Documents/Codex/2026-10-31/git-github-com-wqk10099-quadruped-training/outputs/black_terrain_fsm/assets/scene_terrain.xml"
+  },
+  "telemetry": {
+    "csv": "/home/wangqikai/Documents/Codex/2026-10-31/git-github-com-wqk10099-quadruped-training/outputs/black_terrain_fsm/work/base_flat45_smoke_20261104.json.csv",
+    "json": "/home/wangqikai/Documents/Codex/2026-10-31/git-github-com-wqk10099-quadruped-training/outputs/black_terrain_fsm/work/base_flat45_smoke_20261104.json.json",
+    "rows": 200
+  }
+}
