@@ -84,7 +84,7 @@ jump           assets/policies/jump_model_299.pt
                runner_cfg=black_gru_trench_autonomous_vertical_jump_local_teacher_ppo_runner_cfg
 ```
 
-三个 checkpoint 均已随本目录提供，`configs/policies.json` 使用相对于 `对内赛/` 包根的路径，不依赖某台机器的训练日志目录。运行环境仍需安装或引用与这三个模型匹配的本地 mjlab/rsl_rl，以便重建对应的 `RNNModel` 和 runner 配置。程序不会修改 checkpoint、mjlab 源码或训练日志。
+三个 checkpoint 均已随本目录提供，`configs/policies.json` 使用相对于 `队内赛/` 包根的路径，不依赖某台机器的训练日志目录。运行环境仍需安装或引用与这三个模型匹配的本地 mjlab/rsl_rl，以便重建对应的 `RNNModel` 和 runner 配置。程序不会修改 checkpoint、mjlab 源码或训练日志。
 
 ## 4. 地形、限高杆、木桥与高墙
 
@@ -189,7 +189,7 @@ jump           assets/policies/jump_model_299.pt
 从木桥 B 北端执行前脚贴边迈步仿真：
 
 ```bash
-cd quadruped-training-WQK10099/对内赛
+cd quadruped-training-WQK10099/队内赛
 scripts/run_headless.sh bridge
 ```
 
@@ -358,7 +358,7 @@ scripts/run_headless.sh manual --state LOCOMOTION --spawn 0 0 0.51 \
 ## 10. 目录结构
 
 ```text
-对内赛/
+队内赛/
 ├── README.md
 ├── run_simulation.py
 ├── configs/policies.json
